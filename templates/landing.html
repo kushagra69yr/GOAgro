@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GOAgro – AI Smart Farming Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --green: #22c55e;
+      --green-light: #4ade80;
+      --green-dim: rgba(34,197,94,0.12);
+      --green-border: rgba(34,197,94,0.25);
+      --bg: #060b06;
+      --surface: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --text: #f1f5f1;
+      --muted: rgba(255,255,255,0.5);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--green-border); border-radius: 3px; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 64px; height: 68px;
+      background: rgba(6,11,6,0.8);
+      backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+
+    .nav-logo {
+      font-size: 1.5rem; font-weight: 800;
+      color: var(--green-light); letter-spacing: -0.5px;
+      text-decoration: none;
+    }
+    .nav-logo span { color: white; }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 36px; list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted); text-decoration: none;
+      font-size: 0.9rem; font-weight: 500;
+      transition: color 0.2s; letter-spacing: 0.2px;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      background: var(--green) !important;
+      color: #030803 !important;
+      padding: 9px 22px; border-radius: 8px;
+      font-weight: 700 !important; font-size: 0.88rem !important;
+      transition: background 0.2s, transform 0.15s !important;
+    }
+    .nav-cta:hover { background: var(--green-light) !important; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34,197,94,0.12) 0%, transparent 70%),
+        url("https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=1600") center/cover no-repeat;
+      opacity: 0.35;
+      z-index: 0;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(6,11,6,0.5) 0%, rgba(6,11,6,0.85) 60%, var(--bg) 100%);
+      z-index: 1;
+    }
+
+    .hero > * { position: relative; z-index: 2; }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--green-dim);
+      border: 1px solid var(--green-border);
+      color: var(--green-light);
+      padding: 6px 16px; border-radius: 100px;
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-eyebrow .dot {
+      width: 6px; height: 6px;
+      background: var(--green-light);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 900; line-height: 1.08;
+      letter-spacing: -2px; max-width: 900px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .hero h1 .accent { color: var(--green-light); }
+
+    .hero h1 .line2 {
+      display: block;
+      background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem; color: var(--muted);
+      max-width: 520px; line-height: 1.75;
+      margin-bottom: 44px; font-weight: 400;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--green);
+      color: #030803; padding: 14px 32px;
+      border-radius: 10px; font-size: 0.95rem; font-weight: 700;
+      text-decoration: none; letter-spacing: 0.2px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 0 0 0 rgba(34,197,94,0.4);
+    }
+    .btn-primary:hover {
+      background: var(--green-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(34,197,94,0.3);
+    }
+
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--text); padding: 14px 32px;
+      border-radius: 10px; font-size: 0.95rem; font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── TRUST BAR ── */
+    .trust-bar {
+      display: flex; justify-content: center; align-items: center;
+      gap: 48px; flex-wrap: wrap;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .trust-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .trust-item .tv {
+      font-size: 2rem; font-weight: 800;
+      color: var(--green-light); letter-spacing: -1px;
+    }
+    .trust-item .tl {
+      font-size: 0.8rem; color: var(--muted); font-weight: 500;
+    }
+
+    /* ── SECTION COMMONS ── */
+    section { padding: 100px 64px; }
+
+    .section-eyebrow {
+      font-size: 0.75rem; font-weight: 700;
+      color: var(--green); letter-spacing: 2px;
+      text-transform: uppercase; margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(1.9rem, 4vw, 3rem);
+      font-weight: 800; letter-spacing: -1px;
+      margin-bottom: 16px; line-height: 1.15;
+    }
+
+    .section-sub {
+      font-size: 1rem; color: var(--muted);
+      max-width: 520px; line-height: 1.7; margin-bottom: 56px;
+    }
+
+    /* ── FEATURES ── */
+    #features { text-align: center; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px; max-width: 1100px; margin: 0 auto;
+    }
+
+    .feat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px 28px;
+      text-align: left;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      cursor: default;
+    }
+    .feat-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--green-border);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px var(--green-border);
+    }
+
+    .feat-icon-wrap {
+      width: 48px; height: 48px;
+      background: var(--green-dim);
+      border: 1px solid var(--green-border);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 20px;
+    }
+
+    .feat-card h3 {
+      font-size: 1rem; font-weight: 700;
+      margin-bottom: 10px; letter-spacing: -0.2px;
+    }
+
+    .feat-card p {
+      font-size: 0.88rem; color: var(--muted); line-height: 1.7;
+    }
+
+    /* ── HOW IT WORKS ── */
+    #how {
+      background: rgba(255,255,255,0.015);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .steps-row {
+      display: flex; justify-content: center;
+      gap: 0; max-width: 1000px; margin: 0 auto;
+      position: relative;
+    }
+
+    .steps-row::before {
+      content: '';
+      position: absolute;
+      top: 28px; left: 15%; right: 15%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green-border), transparent);
+    }
+
+    .step-item {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; padding: 0 20px;
+    }
+
+    .step-circle {
+      width: 56px; height: 56px;
+      background: var(--green-dim);
+      border: 2px solid var(--green-border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; font-weight: 900;
+      color: var(--green-light);
+      margin-bottom: 20px; position: relative; z-index: 1;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .step-item:hover .step-circle {
+      background: rgba(34,197,94,0.2);
+      border-color: var(--green);
+    }
+
+    .step-item h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+    .step-item p { font-size: 0.84rem; color: var(--muted); line-height: 1.65; }
+
+    /* ── TECH STACK ── */
+    #tech { text-align: center; }
+
+    .tech-grid {
+      display: flex; justify-content: center; flex-wrap: wrap;
+      gap: 14px; max-width: 800px; margin: 0 auto;
+    }
+
+    .tech-pill {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 20px; border-radius: 100px;
+      font-size: 0.88rem; font-weight: 500;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .tech-pill:hover {
+      border-color: var(--green-border);
+      background: var(--green-dim);
+    }
+    .tech-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      padding: 100px 24px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 70% 80% at 50% 50%, rgba(34,197,94,0.08) 0%, transparent 70%),
+        url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1400") center/cover no-repeat;
+      opacity: 0.2; z-index: 0;
+    }
+    .cta-section::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, var(--bg), rgba(6,11,6,0.7), var(--bg));
+      z-index: 1;
+    }
+    .cta-section > * { position: relative; z-index: 2; }
+
+    .cta-section h2 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900; letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
+    .cta-section p {
+      color: var(--muted); font-size: 1.05rem;
+      margin-bottom: 40px; max-width: 480px; margin-left: auto; margin-right: auto;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: rgba(0,0,0,0.4);
+      border-top: 1px solid var(--border);
+      padding: 32px 64px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 16px;
+    }
+    footer .fl { font-size: 0.82rem; color: rgba(255,255,255,0.3); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 0.82rem; color: rgba(255,255,255,0.35); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--green-light); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      section { padding: 70px 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .steps-row { flex-direction: column; gap: 32px; }
+      .steps-row::before { display: none; }
+      footer { padding: 24px; flex-direction: column; text-align: center; }
+      .trust-bar { gap: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">GO<span>Agro</span></a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#tech">Technology</a></li>
+    <li><a href="/predict-page" class="nav-cta">Try Now →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">
+    <span class="dot"></span>
+    AI-Powered Agriculture Platform
+  </div>
+  <h1>
+    <span class="accent">Smart Farming</span>
+    <span class="line2">Starts with the Right Crop</span>
+  </h1>
+  <p class="hero-sub">
+    Enter your soil and climate data. Our Random Forest ML model — trained on 2,200+ samples — tells you exactly which crop will thrive on your land.
+  </p>
+  <div class="hero-actions">
+    <a href="/predict-page" class="btn-primary">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      Get Crop Recommendation
+    </a>
+    <a href="#how" class="btn-secondary">
+      See How It Works
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-item"><div class="tv">22+</div><div class="tl">Crop Types</div></div>
+  <div class="trust-item"><div class="tv">99%</div><div class="tl">Model Accuracy</div></div>
+  <div class="trust-item"><div class="tv">7</div><div class="tl">Input Parameters</div></div>
+  <div class="trust-item"><div class="tv">2,200+</div><div class="tl">Training Samples</div></div>
+  <div class="trust-item"><div class="tv">&lt;1s</div><div class="tl">Prediction Time</div></div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div style="text-align:center; margin-bottom:56px;">
+    <div class="section-eyebrow">Platform Features</div>
+    <h2 class="section-title">Everything a Smart Farmer Needs</h2>
+    <p class="section-sub" style="margin:0 auto;">From soil analysis to disease detection — GOAgro covers the full precision agriculture stack.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon-wrap">🤖</div>
+      <h3>ML Crop Prediction</h3>
+      <p>Random Forest classifier trained on real agricultural data. Predicts the optimal crop from 7 soil and climate parameters with 99% accuracy.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap">🔬</div>
+      <h3>Soil Nutrient Analysis</h3>
+      <p>Input N, P, K, and pH values to get instant visual insights. Interactive bar charts show your soil profile against crop requirements.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap">🌦️</div>
+      <h3>Climate Intelligence</h3>
+      <p>Factors in temperature, humidity, and rainfall to give recommendations perfectly suited to your local seasonal conditions.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap">🦠</div>
+      <h3>Disease Detection</h3>
+      <p>CNN model trained on the PlantVillage dataset detects plant diseases from leaf images — early warning before crop loss occurs.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap">📊</div>
+      <h3>Suitability Radar</h3>
+      <p>Multi-axis radar chart visualizes how well your conditions match the recommended crop across all 7 parameters simultaneously.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap">💡</div>
+      <h3>Expert Knowledge Base</h3>
+      <p>Crop-specific growing tips, fertilizer doses, disease alerts, market prices, and yield estimates — all in one result page.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div style="text-align:center; margin-bottom:64px;">
+    <div class="section-eyebrow">Simple Process</div>
+    <h2 class="section-title">From Soil Data to Harvest Plan</h2>
+    <p class="section-sub" style="margin:0 auto;">Four steps. Under 30 seconds. No sign-up required.</p>
+  </div>
+  <div class="steps-row">
+    <div class="step-item">
+      <div class="step-circle">1</div>
+      <h3>Enter Soil Data</h3>
+      <p>Provide N, P, K values from your soil test report along with pH level.</p>
+    </div>
+    <div class="step-item">
+      <div class="step-circle">2</div>
+      <h3>Add Climate Info</h3>
+      <p>Input your region's temperature, humidity, and average annual rainfall.</p>
+    </div>
+    <div class="step-item">
+      <div class="step-circle">3</div>
+      <h3>AI Analyzes</h3>
+      <p>Random Forest model processes your inputs against 2,200+ training samples instantly.</p>
+    </div>
+    <div class="step-item">
+      <div class="step-circle">4</div>
+      <h3>Full Report</h3>
+      <p>Get crop name, growing tips, fertilizer dose, disease alerts, and market price.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <div style="text-align:center; margin-bottom:48px;">
+    <div class="section-eyebrow">Technology Stack</div>
+    <h2 class="section-title">Built with Production-Grade Tools</h2>
+    <p class="section-sub" style="margin:0 auto;">Every component chosen for reliability, performance, and real-world applicability.</p>
+  </div>
+  <div class="tech-grid">
+    <div class="tech-pill"><span class="dot" style="background:#3b82f6"></span>Python 3</div>
+    <div class="tech-pill"><span class="dot" style="background:#f97316"></span>Flask</div>
+    <div class="tech-pill"><span class="dot" style="background:#22c55e"></span>scikit-learn</div>
+    <div class="tech-pill"><span class="dot" style="background:#f59e0b"></span>Random Forest</div>
+    <div class="tech-pill"><span class="dot" style="background:#ec4899"></span>TensorFlow / Keras</div>
+    <div class="tech-pill"><span class="dot" style="background:#8b5cf6"></span>CNN (PlantVillage)</div>
+    <div class="tech-pill"><span class="dot" style="background:#06b6d4"></span>pandas / NumPy</div>
+    <div class="tech-pill"><span class="dot" style="background:#f43f5e"></span>Chart.js</div>
+    <div class="tech-pill"><span class="dot" style="background:#a3e635"></span>Jinja2 Templates</div>
+    <div class="tech-pill"><span class="dot" style="background:#fb923c"></span>joblib</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Ready to Grow Smarter?</h2>
+  <p>Try the crop recommendation tool — free, instant, no account needed.</p>
+  <a href="/predict-page" class="btn-primary" style="font-size:1rem; padding:16px 40px;">
+    🌾 Start Predicting Now
+  </a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <a href="/" class="nav-logo" style="font-size:1.2rem;">GO<span>Agro</span></a>
+  <div class="footer-links">
+    <a href="#features">Features</a>
+    <a href="#how">How It Works</a>
+    <a href="/predict-page">Predict</a>
+  </div>
+  <p class="fl">© 2025 GOAgro · Built with Flask, scikit-learn &amp; TensorFlow</p>
+</footer>
+
+</body>
+</html>

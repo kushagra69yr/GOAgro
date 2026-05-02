@@ -1,0 +1,449 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GOAgro - {{ crop.name }} Result</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --accent:{{ crop.color }};
+      --bg:#060b06;
+      --surface:rgba(255,255,255,0.04);
+      --border:rgba(255,255,255,0.08);
+      --text:#f1f5f1;
+      --muted:rgba(255,255,255,0.45);
+      --green:#22c55e;
+      --green-light:#4ade80;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-track{background:var(--bg)}
+    ::-webkit-scrollbar-thumb{background:rgba(34,197,94,0.3);border-radius:3px}
+
+    nav{
+      position:fixed;top:0;left:0;right:0;z-index:999;
+      display:flex;justify-content:space-between;align-items:center;
+      padding:0 56px;height:64px;
+      background:rgba(6,11,6,0.88);
+      backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-logo{font-size:1.35rem;font-weight:800;color:var(--green-light);text-decoration:none;letter-spacing:-0.5px}
+    .nav-logo span{color:white}
+    .nav-right{display:flex;align-items:center;gap:16px}
+    .nav-link{
+      display:flex;align-items:center;gap:6px;
+      color:var(--muted);text-decoration:none;
+      font-size:0.84rem;font-weight:500;transition:color 0.2s;
+    }
+    .nav-link:hover{color:var(--green-light)}
+    .nav-btn{
+      background:rgba(34,197,94,0.1);
+      border:1px solid rgba(34,197,94,0.25);
+      color:var(--green-light);padding:7px 18px;border-radius:8px;
+      font-size:0.84rem;font-weight:600;text-decoration:none;
+      transition:background 0.2s;
+    }
+    .nav-btn:hover{background:rgba(34,197,94,0.2)}
+
+    .hero{
+      height:460px;margin-top:64px;
+      background:
+        linear-gradient(to bottom,rgba(6,11,6,0.2) 0%,rgba(6,11,6,0.96) 100%),
+        url("{{ crop.image }}") center/cover no-repeat;
+      display:flex;align-items:flex-end;
+      padding:0 56px 52px;
+    }
+    .hero-inner{display:flex;align-items:flex-end;gap:28px;max-width:1200px;width:100%;margin:0 auto}
+    .crop-img{
+      width:110px;height:110px;border-radius:16px;object-fit:cover;flex-shrink:0;
+      border:2px solid var(--accent);
+      box-shadow:0 0 40px color-mix(in srgb,var(--accent) 30%,transparent);
+    }
+    .hero-text{flex:1}
+    .hero-eyebrow{
+      font-size:0.7rem;font-weight:700;letter-spacing:2px;
+      text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+    }
+    .hero-name{
+      font-size:clamp(2.4rem,5vw,3.8rem);font-weight:900;
+      letter-spacing:-2px;text-transform:capitalize;
+      color:var(--accent);
+      text-shadow:0 0 60px color-mix(in srgb,var(--accent) 40%,transparent);
+      margin-bottom:10px;line-height:1;
+    }
+    .hero-desc{font-size:0.92rem;color:rgba(255,255,255,0.6);max-width:640px;line-height:1.65;margin-bottom:16px}
+    .hero-tags{display:flex;flex-wrap:wrap;gap:8px}
+    .htag{
+      display:inline-flex;align-items:center;gap:5px;
+      background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.12);
+      padding:5px 13px;border-radius:100px;
+      font-size:0.75rem;color:rgba(255,255,255,0.7);
+    }
+    .htag.accent{
+      background:color-mix(in srgb,var(--accent) 12%,transparent);
+      border-color:color-mix(in srgb,var(--accent) 30%,transparent);
+      color:var(--accent);font-weight:600;
+    }
+
+    .content{max-width:1200px;margin:0 auto;padding:44px 56px 80px;display:flex;flex-direction:column;gap:24px}
+
+    .stat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+    .stat-card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:14px;padding:18px 16px;
+      transition:border-color 0.2s,transform 0.2s;cursor:default;
+    }
+    .stat-card:hover{border-color:color-mix(in srgb,var(--accent) 35%,transparent);transform:translateY(-3px)}
+    .stat-card .si{font-size:1.3rem;margin-bottom:10px}
+    .stat-card .sl{font-size:0.65rem;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px}
+    .stat-card .sv{font-size:0.88rem;font-weight:600;color:rgba(255,255,255,0.88);line-height:1.3}
+
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+    .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+
+    .glass{
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--border);
+      border-radius:18px;padding:28px;
+      backdrop-filter:blur(12px);
+    }
+    .card-head{
+      display:flex;align-items:center;gap:10px;
+      font-size:0.9rem;font-weight:700;
+      color:rgba(255,255,255,0.88);margin-bottom:20px;letter-spacing:-0.2px;
+    }
+    .card-head .ci{
+      width:30px;height:30px;
+      background:color-mix(in srgb,var(--accent) 12%,transparent);
+      border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);
+      border-radius:8px;
+      display:flex;align-items:center;justify-content:center;font-size:0.88rem;
+    }
+    .divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+
+    .chart-wrap{position:relative;height:230px}
+    .radar-wrap{position:relative;height:250px}
+
+    .input-tiles{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+    .itile{
+      background:rgba(255,255,255,0.04);border:1px solid var(--border);
+      border-radius:12px;padding:14px 10px;text-align:center;
+    }
+    .itile .iv{font-size:1.3rem;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px}
+    .itile .il{font-size:0.62rem;font-weight:600;color:rgba(255,255,255,0.32);text-transform:uppercase;letter-spacing:0.6px}
+
+    .tip-item{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .tip-item:last-child{border-bottom:none}
+    .tip-num{
+      flex-shrink:0;width:22px;height:22px;
+      background:color-mix(in srgb,var(--accent) 12%,transparent);
+      border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);
+      border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:0.68rem;font-weight:800;color:var(--accent);
+    }
+    .tip-text{font-size:0.86rem;color:var(--muted);line-height:1.65}
+
+    .fert-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .fert-card{background:rgba(255,255,255,0.04);border-radius:12px;padding:16px;text-align:center}
+    .fert-card .fv{font-size:1.05rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+    .fert-card .fl{font-size:0.7rem;color:rgba(255,255,255,0.38);font-weight:500}
+
+    .disease-wrap{display:flex;flex-wrap:wrap;gap:8px}
+    .dtag{
+      background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);
+      color:#fca5a5;padding:6px 13px;border-radius:100px;font-size:0.78rem;font-weight:500;
+    }
+
+    .progress-section{display:grid;grid-template-columns:1fr 1fr;gap:16px 40px}
+    .prow{margin-bottom:4px}
+    .plabel{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);margin-bottom:6px;font-weight:500}
+    .ptrack{height:6px;background:rgba(255,255,255,0.07);border-radius:10px;overflow:hidden}
+    .pfill{height:100%;border-radius:10px;background:var(--accent);transition:width 1.2s cubic-bezier(0.4,0,0.2,1);width:0%}
+    .pfill.overall{background:linear-gradient(90deg,var(--green),var(--green-light))}
+
+    .cta-strip{
+      background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(22,163,74,0.05));
+      border:1px solid rgba(34,197,94,0.18);
+      border-radius:18px;padding:30px 32px;
+      display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    }
+    .cta-strip h3{font-size:1.1rem;font-weight:800;margin-bottom:5px;letter-spacing:-0.3px}
+    .cta-strip p{font-size:0.84rem;color:var(--muted)}
+    .cta-btns{display:flex;gap:10px;flex-wrap:wrap}
+    .btn-g{
+      background:var(--green);color:#030803;
+      padding:11px 26px;border-radius:9px;
+      font-weight:700;font-size:0.88rem;text-decoration:none;
+      transition:background 0.2s,transform 0.15s;
+    }
+    .btn-g:hover{background:var(--green-light);transform:translateY(-1px)}
+    .btn-o{
+      border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);
+      padding:11px 26px;border-radius:9px;font-size:0.88rem;text-decoration:none;
+      transition:border-color 0.2s,color 0.2s;
+    }
+    .btn-o:hover{border-color:var(--green-light);color:var(--green-light)}
+
+    footer{
+      background:rgba(0,0,0,0.3);border-top:1px solid var(--border);
+      padding:22px 56px;
+      display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+    }
+    footer p{font-size:0.78rem;color:rgba(255,255,255,0.25)}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .fade-in{animation:fadeUp 0.5s ease both}
+
+    @media(max-width:960px){
+      nav{padding:0 20px}
+      .hero{padding:0 20px 36px;height:auto;padding-top:80px}
+      .content{padding:28px 20px 60px}
+      .stat-row{grid-template-columns:repeat(3,1fr)}
+      .two-col,.three-col{grid-template-columns:1fr}
+      .input-tiles{grid-template-columns:repeat(4,1fr)}
+      .progress-section{grid-template-columns:1fr}
+      footer{padding:20px;flex-direction:column;text-align:center}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">GO<span>Agro</span></a>
+  <div class="nav-right">
+    <a href="/predict-page" class="nav-link">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      New Prediction
+    </a>
+    <a href="/" class="nav-btn">Home</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <img src="{{ crop.image }}" alt="{{ crop.name }}" class="crop-img"/>
+    <div class="hero-text">
+      <div class="hero-eyebrow">AI Recommendation &nbsp;·&nbsp; Random Forest Model &nbsp;·&nbsp; High Confidence</div>
+      <div class="hero-name">{{ crop.name }}</div>
+      <div class="hero-desc">{{ crop.description }}</div>
+      <div class="hero-tags">
+        <span class="htag accent">✅ Best Match for Your Soil</span>
+        <span class="htag">📅 {{ crop.season }}</span>
+        <span class="htag">⏱ {{ crop.duration }}</span>
+        <span class="htag">💰 {{ crop.market_price }}</span>
+        <span class="htag">📦 {{ crop.yield }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- STAT ROW -->
+  <div class="stat-row fade-in">
+    <div class="stat-card"><div class="si">🌡️</div><div class="sl">Temperature</div><div class="sv">{{ crop.temp_range }}</div></div>
+    <div class="stat-card"><div class="si">💧</div><div class="sl">Water Need</div><div class="sv">{{ crop.water }}</div></div>
+    <div class="stat-card"><div class="si">⚗️</div><div class="sl">Optimal pH</div><div class="sv">{{ crop.ph_range }}</div></div>
+    <div class="stat-card"><div class="si">🌱</div><div class="sl">Soil Type</div><div class="sv">{{ crop.soil_type }}</div></div>
+    <div class="stat-card"><div class="si">📦</div><div class="sl">Yield</div><div class="sv">{{ crop.yield }}</div></div>
+    <div class="stat-card"><div class="si">💰</div><div class="sl">Market Price</div><div class="sv">{{ crop.market_price }}</div></div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="two-col fade-in">
+    <div class="glass">
+      <div class="card-head"><div class="ci">📊</div>Soil Nutrient Profile</div>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+    <div class="glass">
+      <div class="card-head"><div class="ci">🕸️</div>Condition Suitability Radar</div>
+      <div class="radar-wrap"><canvas id="radarChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- INPUT SUMMARY -->
+  <div class="glass fade-in">
+    <div class="card-head"><div class="ci">🔢</div>Your Input Summary</div>
+    <div class="input-tiles">
+      <div class="itile"><div class="iv" style="color:#4ade80">{{ N }}</div><div class="il">Nitrogen · kg/ha</div></div>
+      <div class="itile"><div class="iv" style="color:#60a5fa">{{ P }}</div><div class="il">Phosphorus · kg/ha</div></div>
+      <div class="itile"><div class="iv" style="color:#f97316">{{ K }}</div><div class="il">Potassium · kg/ha</div></div>
+      <div class="itile"><div class="iv" style="color:#fb923c">{{ temperature }}°</div><div class="il">Temperature · °C</div></div>
+      <div class="itile"><div class="iv" style="color:#38bdf8">{{ humidity }}%</div><div class="il">Humidity</div></div>
+      <div class="itile"><div class="iv" style="color:#a78bfa">{{ ph }}</div><div class="il">Soil pH</div></div>
+      <div class="itile"><div class="iv" style="color:#34d399">{{ rainfall }}</div><div class="il">Rainfall · mm</div></div>
+    </div>
+  </div>
+
+  <!-- TIPS + FERT/DISEASE -->
+  <div class="two-col fade-in">
+    <div class="glass">
+      <div class="card-head"><div class="ci">🌱</div>Expert Growing Tips</div>
+      {% for tip in crop.tips %}
+      <div class="tip-item">
+        <div class="tip-num">{{ loop.index }}</div>
+        <div class="tip-text">{{ tip }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:24px">
+      <div class="glass">
+        <div class="card-head"><div class="ci">🧴</div>Recommended Fertilizer Dose</div>
+        <div class="fert-grid">
+          <div class="fert-card"><div class="fv">{{ crop.fertilizer.N }}</div><div class="fl">Nitrogen (N)</div></div>
+          <div class="fert-card"><div class="fv">{{ crop.fertilizer.P }}</div><div class="fl">Phosphorus (P)</div></div>
+          <div class="fert-card"><div class="fv">{{ crop.fertilizer.K }}</div><div class="fl">Potassium (K)</div></div>
+        </div>
+      </div>
+      <div class="glass">
+        <div class="card-head"><div class="ci">🦠</div>Common Diseases &amp; Pests</div>
+        <div class="disease-wrap">
+          {% for d in crop.diseases %}
+          <span class="dtag">⚠️ {{ d }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCH SCORES -->
+  <div class="glass fade-in">
+    <div class="card-head"><div class="ci">📈</div>Condition Match Scores</div>
+    <div class="progress-section">
+      <div>
+        <div class="prow"><div class="plabel"><span>Soil Nutrients</span><span id="pct-n">—</span></div><div class="ptrack"><div class="pfill" id="bar-n"></div></div></div>
+        <div class="prow"><div class="plabel"><span>pH Suitability</span><span id="pct-ph">—</span></div><div class="ptrack"><div class="pfill" id="bar-ph"></div></div></div>
+        <div class="prow"><div class="plabel"><span>Temperature Match</span><span id="pct-t">—</span></div><div class="ptrack"><div class="pfill" id="bar-t"></div></div></div>
+      </div>
+      <div>
+        <div class="prow"><div class="plabel"><span>Humidity Match</span><span id="pct-h">—</span></div><div class="ptrack"><div class="pfill" id="bar-h"></div></div></div>
+        <div class="prow"><div class="plabel"><span>Rainfall Adequacy</span><span id="pct-r">—</span></div><div class="ptrack"><div class="pfill" id="bar-r"></div></div></div>
+        <div class="prow"><div class="plabel"><span><strong>Overall Suitability</strong></span><span id="pct-o" style="color:var(--green-light);font-weight:700">—</span></div><div class="ptrack"><div class="pfill overall" id="bar-o"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-strip fade-in">
+    <div>
+      <h3>Want to explore other crops?</h3>
+      <p>Adjust your soil or climate values and run a new prediction.</p>
+    </div>
+    <div class="cta-btns">
+      <a href="/predict-page" class="btn-g">🔄 New Prediction</a>
+      <a href="/" class="btn-o">�� Home</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <a href="/" class="nav-logo" style="font-size:1.1rem">GO<span>Agro</span></a>
+  <p>Built with Flask · scikit-learn · Chart.js · TensorFlow</p>
+  <p>© 2025 GOAgro Smart Farming Platform</p>
+</footer>
+
+<script>
+  const N = {{ N }};
+  const P = {{ P }};
+  const K = {{ K }};
+  const temp = {{ temperature }};
+  const humidity = {{ humidity }};
+  const ph = {{ ph }};
+  const rainfall = {{ rainfall }};
+  const accent = "{{ crop.color }}";
+
+  // Bar Chart
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Nitrogen (N)', 'Phosphorus (P)', 'Potassium (K)'],
+      datasets: [{
+        label: 'Your Soil (kg/ha)',
+        data: [N, P, K],
+        backgroundColor: ['rgba(74,222,128,0.7)','rgba(96,165,250,0.7)','rgba(249,115,22,0.7)'],
+        borderColor: ['rgba(74,222,128,1)','rgba(96,165,250,1)','rgba(249,115,22,1)'],
+        borderWidth: 2, borderRadius: 10, borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: 'rgba(0,0,0,0.85)', titleColor: accent, bodyColor: 'rgba(255,255,255,0.8)', padding: 12, cornerRadius: 8 }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.45)', font: { family: 'Inter', size: 11 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.45)', font: { family: 'Inter', size: 11 } }, beginAtZero: true }
+      }
+    }
+  });
+
+  // Radar Chart
+  const rData = [
+    Math.min(100,(N/140)*100),
+    Math.min(100,(P/145)*100),
+    Math.min(100,(K/205)*100),
+    Math.min(100,((temp-8)/36)*100),
+    Math.min(100,humidity),
+    Math.min(100,(ph/14)*100),
+    Math.min(100,(rainfall/300)*100)
+  ];
+  new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Nitrogen','Phosphorus','Potassium','Temperature','Humidity','pH','Rainfall'],
+      datasets: [{
+        label: 'Your Conditions',
+        data: rData,
+        backgroundColor: accent + '1a',
+        borderColor: accent,
+        borderWidth: 2,
+        pointBackgroundColor: accent,
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100,
+          grid: { color: 'rgba(255,255,255,0.07)' },
+          angleLines: { color: 'rgba(255,255,255,0.07)' },
+          ticks: { display: false },
+          pointLabels: { color: 'rgba(255,255,255,0.5)', font: { family: 'Inter', size: 11 } }
+        }
+      }
+    }
+  });
+
+  // Progress bars
+  function setBar(bid, pid, val) {
+    const pct = Math.round(Math.min(100, Math.max(0, val)));
+    setTimeout(() => {
+      document.getElementById(bid).style.width = pct + '%';
+      document.getElementById(pid).textContent = pct + '%';
+    }, 400);
+  }
+  const nS = Math.min(100,((N+P+K)/390)*100);
+  const phS = Math.max(0,100-Math.abs(ph-6.5)*20);
+  const tS = Math.max(0,100-Math.abs(temp-25)*3);
+  const hS = Math.max(0,100-Math.abs(humidity-70)*1.5);
+  const rS = Math.min(100,(rainfall/250)*100);
+  const oS = (nS+phS+tS+hS+rS)/5;
+  setBar('bar-n','pct-n',nS);
+  setBar('bar-ph','pct-ph',phS);
+  setBar('bar-t','pct-t',tS);
+  setBar('bar-h','pct-h',hS);
+  setBar('bar-r','pct-r',rS);
+  setBar('bar-o','pct-o',oS);
+</script>
+</body>
+</html>

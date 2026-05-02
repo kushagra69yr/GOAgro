@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GOAgro – Crop Predictor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --green: #22c55e;
+      --green-light: #4ade80;
+      --green-dim: rgba(34,197,94,0.1);
+      --green-border: rgba(34,197,94,0.22);
+      --bg: #060b06;
+      --surface: rgba(255,255,255,0.04);
+      --surface2: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --text: #f1f5f1;
+      --muted: rgba(255,255,255,0.45);
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--green-border); border-radius: 3px; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 56px; height: 64px;
+      background: rgba(6,11,6,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-size: 1.35rem; font-weight: 800; color: var(--green-light); text-decoration: none; letter-spacing: -0.5px; }
+    .nav-logo span { color: white; }
+    .nav-back {
+      display: flex; align-items: center; gap: 7px;
+      color: var(--muted); text-decoration: none;
+      font-size: 0.85rem; font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--green-light); }
+
+    /* ── PAGE ── */
+    .page {
+      min-height: 100vh;
+      padding: 88px 56px 72px;
+      background:
+        radial-gradient(ellipse 100% 50% at 50% 0%, rgba(34,197,94,0.06) 0%, transparent 60%),
+        var(--bg);
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    /* ── HEADER ── */
+    .page-header {
+      text-align: center; margin-bottom: 52px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--green-dim); border: 1px solid var(--green-border);
+      color: var(--green-light); padding: 5px 14px; border-radius: 100px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; margin-bottom: 18px;
+    }
+    .page-header h1 {
+      font-size: clamp(1.9rem, 4vw, 2.8rem);
+      font-weight: 900; letter-spacing: -1px; margin-bottom: 12px;
+    }
+    .page-header h1 em { font-style: normal; color: var(--green-light); }
+    .page-header p { color: var(--muted); font-size: 0.97rem; font-weight: 400; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── GRID ── */
+    .main-grid {
+      display: grid; grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px; width: 100%; max-width: 1120px;
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    /* ── GLASS ── */
+    .glass {
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 32px;
+      backdrop-filter: blur(16px);
+    }
+
+    .card-head {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.92rem; font-weight: 700;
+      color: rgba(255,255,255,0.9); margin-bottom: 24px;
+      letter-spacing: -0.2px;
+    }
+    .card-head .ci {
+      width: 32px; height: 32px;
+      background: var(--green-dim); border: 1px solid var(--green-border);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+    }
+
+    /* ── SECTION DIVIDER ── */
+    .sec-label {
+      font-size: 0.7rem; font-weight: 700;
+      color: rgba(255,255,255,0.28); letter-spacing: 1.5px;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    /* ── INPUTS ── */
+    .input-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: 0.72rem; font-weight: 600;
+      color: rgba(255,255,255,0.4); letter-spacing: 0.8px; text-transform: uppercase;
+    }
+    .input-wrap { position: relative; }
+    .input-wrap .unit {
+      position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+      font-size: 0.7rem; color: rgba(255,255,255,0.25); pointer-events: none; font-weight: 500;
+    }
+
+    input[type="number"] {
+      width: 100%; padding: 11px 46px 11px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 10px; color: var(--text);
+      font-size: 0.93rem; font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      appearance: textfield; -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus {
+      border-color: var(--green);
+      background: rgba(34,197,94,0.06);
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
+    }
+    input[type="number"]:hover:not(:focus) { border-color: rgba(255,255,255,0.15); }
+    input::placeholder { color: rgba(255,255,255,0.18); }
+
+    /* ── SUBMIT ── */
+    .submit-btn {
+      width: 100%; padding: 14px 20px; margin-top: 12px;
+      background: var(--green);
+      color: #030803; border: none; border-radius: 12px;
+      font-size: 0.95rem; font-weight: 700; font-family: 'Inter', sans-serif;
+      cursor: pointer; letter-spacing: 0.2px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .submit-btn:hover {
+      background: var(--green-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(34,197,94,0.3);
+    }
+    .submit-btn:active { transform: translateY(0); box-shadow: none; }
+
+    /* loading state */
+    .submit-btn.loading { opacity: 0.7; pointer-events: none; }
+
+    /* ── ERROR ── */
+    .error-box {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 10px; padding: 13px 16px;
+      color: #fca5a5; font-size: 0.86rem; margin-top: 14px;
+    }
+
+    /* ── SAMPLE CHIPS ── */
+    .chips-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: rgba(255,255,255,0.65); padding: 6px 13px; border-radius: 100px;
+      font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      user-select: none;
+    }
+    .chip:hover {
+      background: var(--green-dim);
+      border-color: var(--green-border);
+      color: var(--green-light);
+    }
+    .chip:active { transform: scale(0.97); }
+
+    /* ── TIPS PANEL ── */
+    .tip-row {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .tip-row:last-child { border-bottom: none; }
+    .tip-icon {
+      flex-shrink: 0; width: 30px; height: 30px;
+      background: var(--green-dim); border: 1px solid var(--green-border);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+    }
+    .tip-row p { font-size: 0.84rem; color: var(--muted); line-height: 1.6; }
+    .tip-row strong { color: rgba(255,255,255,0.85); font-weight: 600; }
+
+    /* ── RANGE TABLE ── */
+    .rtable { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .rtable th {
+      text-align: left; color: rgba(255,255,255,0.28);
+      font-weight: 600; padding: 4px 0 10px;
+      text-transform: uppercase; letter-spacing: 0.8px; font-size: 0.7rem;
+    }
+    .rtable td {
+      padding: 8px 0; color: rgba(255,255,255,0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .rtable td:last-child { color: var(--green-light); text-align: right; font-weight: 500; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .page { padding: 80px 20px 48px; }
+      nav { padding: 0 20px; }
+      .main-grid { grid-template-columns: 1fr; }
+      .input-grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">GO<span>Agro</span></a>
+  <a href="/" class="nav-back">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to Home
+  </a>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <div class="eyebrow">🌿 AI Crop Advisor</div>
+    <h1>Find the <em>Perfect Crop</em> for Your Land</h1>
+    <p>Enter your soil and climate data — get an instant ML-powered recommendation.</p>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- ── FORM ── -->
+    <div class="glass">
+      <div class="card-head">
+        <div class="ci">🧪</div>
+        Soil &amp; Climate Parameters
+      </div>
+
+      <form action="/predict" method="post" id="predictForm">
+
+        <div class="sec-label">Soil Nutrients</div>
+        <div class="input-grid-2">
+          <div class="field">
+            <label>Nitrogen (N)</label>
+            <div class="input-wrap">
+              <input type="number" name="N" placeholder="e.g. 90" step="any" min="0" max="200" required/>
+              <span class="unit">kg/ha</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Phosphorus (P)</label>
+            <div class="input-wrap">
+              <input type="number" name="P" placeholder="e.g. 42" step="any" min="0" max="200" required/>
+              <span class="unit">kg/ha</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Potassium (K)</label>
+            <div class="input-wrap">
+              <input type="number" name="K" placeholder="e.g. 43" step="any" min="0" max="210" required/>
+              <span class="unit">kg/ha</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Soil pH</label>
+            <div class="input-wrap">
+              <input type="number" name="ph" placeholder="e.g. 6.5" step="0.1" min="0" max="14" required/>
+              <span class="unit">0–14</span>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider"/>
+        <div class="sec-label">Climate Conditions</div>
+
+        <div class="input-grid-2">
+          <div class="field">
+            <label>Temperature</label>
+            <div class="input-wrap">
+              <input type="number" name="temperature" placeholder="e.g. 25" step="0.1" min="-10" max="55" required/>
+              <span class="unit">°C</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Humidity</label>
+            <div class="input-wrap">
+              <input type="number" name="humidity" placeholder="e.g. 80" step="0.1" min="0" max="100" required/>
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div class="field" style="grid-column: 1 / -1;">
+            <label>Annual Rainfall</label>
+            <div class="input-wrap">
+              <input type="number" name="rainfall" placeholder="e.g. 200" step="0.1" min="0" max="500" required/>
+              <span class="unit">mm</span>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <span id="btnText">Predict Best Crop</span>
+        </button>
+      </form>
+
+      {% if error %}
+      <div class="error-box">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <hr class="divider"/>
+      <div class="sec-label" style="margin-bottom:12px;">Quick fill — try a sample</div>
+      <div class="chips-wrap">
+        <span class="chip" onclick="fill(90,42,43,20.9,82,6.5,202.9)">🌾 Rice</span>
+        <span class="chip" onclick="fill(20,60,20,21.8,80.3,7.0,100)">🌿 Wheat</span>
+        <span class="chip" onclick="fill(80,50,50,27,65,6.2,85)">🌽 Maize</span>
+        <span class="chip" onclick="fill(100,82,50,27,85,6.0,200)">🍌 Banana</span>
+        <span class="chip" onclick="fill(20,30,30,38,50,7.5,50)">🍎 Pomegranate</span>
+        <span class="chip" onclick="fill(40,60,80,30,90,6.5,150)">🍇 Grapes</span>
+      </div>
+    </div>
+
+    <!-- ── GUIDE PANEL ── -->
+    <div class="glass">
+      <div class="card-head">
+        <div class="ci">💡</div>
+        Parameter Guide
+      </div>
+
+      <div class="tip-row">
+        <div class="tip-icon">🌿</div>
+        <p><strong>Nitrogen (N)</strong> — drives leaf &amp; stem growth. Low N causes yellowing of older leaves. Get value from soil test report.</p>
+      </div>
+      <div class="tip-row">
+        <div class="tip-icon">🌸</div>
+        <p><strong>Phosphorus (P)</strong> — essential for root development and flowering. Deficiency shows as purple-tinted leaves.</p>
+      </div>
+      <div class="tip-row">
+        <div class="tip-icon">💧</div>
+        <p><strong>Potassium (K)</strong> — regulates water use and disease resistance. Low K causes brown, scorched leaf edges.</p>
+      </div>
+      <div class="tip-row">
+        <div class="tip-icon">⚗️</div>
+        <p><strong>pH</strong> — controls nutrient availability. Most crops prefer 6.0–7.5. Below 5.5 or above 8 severely limits growth.</p>
+      </div>
+      <div class="tip-row">
+        <div class="tip-icon">🌡️</div>
+        <p><strong>Temperature &amp; Humidity</strong> — use your region's seasonal averages, not daily readings.</p>
+      </div>
+      <div class="tip-row">
+        <div class="tip-icon">🌧️</div>
+        <p><strong>Rainfall</strong> — annual average in mm. Enter 0 if your field is fully irrigated.</p>
+      </div>
+
+      <hr class="divider"/>
+      <div class="card-head" style="font-size:0.82rem; margin-bottom:14px; font-weight:600;">Typical Input Ranges</div>
+      <table class="rtable">
+        <tr><th>Parameter</th><th>Typical Range</th></tr>
+        <tr><td>Nitrogen</td><td>0 – 140 kg/ha</td></tr>
+        <tr><td>Phosphorus</td><td>5 – 145 kg/ha</td></tr>
+        <tr><td>Potassium</td><td>5 – 205 kg/ha</td></tr>
+        <tr><td>Temperature</td><td>8 – 44 °C</td></tr>
+        <tr><td>Humidity</td><td>14 – 100 %</td></tr>
+        <tr><td>pH</td><td>3.5 – 9.5</td></tr>
+        <tr><td>Rainfall</td><td>20 – 300 mm</td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function fill(n, p, k, t, h, ph, r) {
+    const f = document.getElementById('predictForm');
+    f.N.value = n; f.P.value = p; f.K.value = k;
+    f.temperature.value = t; f.humidity.value = h;
+    f.ph.value = ph; f.rainfall.value = r;
+    // flash effect
+    f.querySelectorAll('input').forEach(i => {
+      i.style.borderColor = '#22c55e';
+      setTimeout(() => i.style.borderColor = '', 600);
+    });
+  }
+
+  document.getElementById('predictForm').addEventListener('submit', function() {
+    const btn = document.getElementById('submitBtn');
+    const txt = document.getElementById('btnText');
+    btn.classList.add('loading');
+    txt.textContent = 'Analyzing…';
+  });
+</script>
+
+</body>
+</html>
