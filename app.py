@@ -358,12 +358,22 @@ def predict():
         if hasattr(model, "predict_proba") and hasattr(model, "classes_"):
             probabilities = model.predict_proba(data)[0]
             ranked = sorted(zip(model.classes_, probabilities), key=lambda item: item[1], reverse=True)[:3]
+            display_names = {
+                "kidneybeans": "Kidney Beans", "pigeonpeas": "Pigeon Peas",
+                "mothbeans": "Moth Beans", "mungbean": "Mung Bean",
+                "blackgram": "Black Gram", "muskmelon": "Muskmelon",
+            }
             ranked_crops = [
-                {"name": str(name).replace("_", " ").title(), "confidence": round(float(probability) * 100, 1)}
+                {
+                    "name": display_names.get(str(name).strip().lower(),
+                                              str(name).replace("_", " ").title()),
+                    "confidence": round(float(probability) * 100, 1)
+                }
                 for name, probability in ranked
             ]
+        normalize_crop = lambda value: str(value).lower().replace("_", "").replace(" ", "")
         confidence = next((item["confidence"] for item in ranked_crops
-                           if item["name"].lower() == prediction.replace("_", " ")), None)
+                           if normalize_crop(item["name"]) == normalize_crop(prediction)), None)
 
         # Store all submitted values so each result reflects the current prediction run.
         session['result']       = prediction
@@ -404,7 +414,7 @@ def result():
         "kidneybeans": "https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=1200",
         "pigeonpeas": "https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=1200",
         "mothbeans": "https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=1200",
-        "mungbean": "https://images.unsplash.com/photo-1583720106247-265fc7bdea25?w=1200",
+        "mungbean": "https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=1200",
         "blackgram": "https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=1200",
         "muskmelon": "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1200",
     }
