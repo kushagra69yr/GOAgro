@@ -28,7 +28,7 @@ The current prediction pipeline uses seven inputs:
 | **pH** | Soil acidity / alkalinity |
 | **Rainfall** | Water availability indicator |
 
-The predicted crop can then be presented with the farming information available in the application, including cultivation guidance and other crop details.
+The predicted crop is displayed with the exact submitted soil/climate values, the model's top three class probabilities when supported, and crop-specific imagery and available cultivation guidance. Similar inputs may legitimately produce the same crop prediction; the app reports the model result rather than forcing an artificial change.
 
 ## ✨ Key Features
 
