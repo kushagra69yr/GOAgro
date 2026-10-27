@@ -341,24 +341,47 @@ def predict():
         if not (0 <= humidity <= 100):
             raise ValueError("Humidity out of range")
 
-        data = np.array([[N, P, K, temp, humidity, ph, rainfall]])
-        prediction = model.predict(data)[0].lower()
+        limits = {
+            "N": (N, 0, 200), "P": (P, 0, 200), "K": (K, 0, 210),
+            "temperature": (temp, -10, 55), "humidity": (humidity, 0, 100),
+            "pH": (ph, 0, 14), "rainfall": (rainfall, 0, 500),
+        }
+        for label, (value, low, high) in limits.items():
+            if not np.isfinite(value) or not low <= value <= high:
+                raise ValueError(f"{label} must be between {low} and {high}")
 
-        # Store inputs in session for result page
-        session['result']      = prediction
-        session['N']           = N
-        session['P']           = P
-        session['K']           = K
-        session['temperature'] = temp
-        session['humidity']    = humidity
-        session['ph']          = ph
-        session['rainfall']    = rainfall
+        data = np.array([[N, P, K, temp, humidity, ph, rainfall]], dtype=float)
+        prediction = str(model.predict(data)[0]).strip().lower()
+
+        # Display real model confidence and its leading alternatives when available.
+        ranked_crops = []
+        if hasattr(model, "predict_proba") and hasattr(model, "classes_"):
+            probabilities = model.predict_proba(data)[0]
+            ranked = sorted(zip(model.classes_, probabilities), key=lambda item: item[1], reverse=True)[:3]
+            ranked_crops = [
+                {"name": str(name).replace("_", " ").title(), "confidence": round(float(probability) * 100, 1)}
+                for name, probability in ranked
+            ]
+        confidence = next((item["confidence"] for item in ranked_crops
+                           if item["name"].lower() == prediction.replace("_", " ")), None)
+
+        # Store all submitted values so each result reflects the current prediction run.
+        session['result']       = prediction
+        session['confidence']   = confidence
+        session['alternatives'] = ranked_crops
+        session['N']            = N
+        session['P']            = P
+        session['K']            = K
+        session['temperature']  = temp
+        session['humidity']     = humidity
+        session['ph']           = ph
+        session['rainfall']     = rainfall
 
         return redirect(url_for('result'))
 
-    except Exception as e:
+    except (KeyError, TypeError, ValueError, OverflowError):
         return render_template("index.html",
-                               error="Please enter valid numeric values in all fields.")
+                               error="Enter valid numbers within the allowed ranges for all seven fields.")
 
 
 @app.route('/result')
@@ -367,11 +390,32 @@ def result():
         return redirect(url_for('predict_page'))
 
     crop_name = session['result']
-    info      = CROP_DATA.get(crop_name, DEFAULT_CROP)
-    info['name'] = crop_name.capitalize()
+    info = dict(CROP_DATA.get(crop_name, DEFAULT_CROP))
+    info['name'] = crop_name.replace("_", " ").capitalize()
+
+    # Crop-specific images for common model labels without a full guide entry.
+    crop_images = {
+        "coconut": "https://images.unsplash.com/photo-1583720106247-265fc7bdea25?w=1200",
+        "coffee": "https://images.unsplash.com/photo-1701958901971-1a382675cfec?w=1200",
+        "papaya": "https://commons.wikimedia.org/wiki/Special:FilePath/Carica%20papaya%20of%20Salem.jpg?width=1200",
+        "orange": "https://commons.wikimedia.org/wiki/Special:FilePath/Citrus%20aurantium.jpg?width=1200",
+        "apple": "https://commons.wikimedia.org/wiki/Special:FilePath/Raw%20apple.JPG?width=1200",
+        "jute": "https://commons.wikimedia.org/wiki/Special:FilePath/Jute%20plant.jpg?width=1200",
+        "kidneybeans": "https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=1200",
+        "pigeonpeas": "https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=1200",
+        "mothbeans": "https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=1200",
+        "mungbean": "https://images.unsplash.com/photo-1583720106247-265fc7bdea25?w=1200",
+        "blackgram": "https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=1200",
+        "muskmelon": "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1200",
+    }
+    if crop_name in crop_images:
+        info["image"] = crop_images[crop_name]
+        info["banner"] = crop_images[crop_name]
 
     return render_template("result.html",
                            crop=info,
+                           confidence=session.get('confidence'),
+                           alternatives=session.get('alternatives', []),
                            N=session['N'],
                            P=session['P'],
                            K=session['K'],
