@@ -228,7 +228,7 @@
   <div class="hero-inner">
     <img src="{{ crop.image }}" alt="{{ crop.name }}" class="crop-img"/>
     <div class="hero-text">
-      <div class="hero-eyebrow">AI Recommendation &nbsp;·&nbsp; Random Forest Model &nbsp;·&nbsp; High Confidence</div>
+      <div class="hero-eyebrow">AI Recommendation &nbsp;·&nbsp; Random Forest Model{% if confidence is not none %} &nbsp;·&nbsp; {{ confidence }}% model confidence{% endif %}</div>
       <div class="hero-name">{{ crop.name }}</div>
       <div class="hero-desc">{{ crop.description }}</div>
       <div class="hero-tags">
@@ -243,6 +243,28 @@
 </div>
 
 <div class="content">
+
+  {% if alternatives %}
+  <div class="glass fade-in" style="padding:22px 26px">
+    <div class="card-head"><div class="ci">🎯</div>Top model matches for your exact inputs</div>
+    <p style="color:var(--muted);font-size:.82rem;line-height:1.6;margin:-8px 0 16px">
+      These scores come from the trained model for the values you entered. Similar field conditions can correctly lead to the same recommendation.
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px">
+      {% for item in alternatives %}
+      <div style="border:1px solid {% if item.name|lower == crop.name|lower %}color-mix(in srgb,var(--accent) 55%,transparent){% else %}var(--border){% endif %};background:rgba(255,255,255,.025);border-radius:12px;padding:14px">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px">
+          <strong style="font-size:.9rem">{{ item.name }}</strong>
+          <span style="color:var(--accent);font-weight:800;font-size:.85rem">{{ item.confidence }}%</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:{{ item.confidence }}%;background:var(--accent);border-radius:99px"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
   <!-- STAT ROW -->
   <div class="stat-row fade-in">
